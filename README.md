@@ -87,7 +87,7 @@ Internet
 
 ```bash
 # Cloner le projet
-git clone https://github.com/votre-username/infrastructure-securisee.git
+git clone https://github.com/mowa2001/infrastructure-securisee.git
 cd infrastructure-securisee
 
 # Rendre les scripts exécutables
@@ -96,36 +96,6 @@ chmod +x scripts/*.sh
 # Lancer l'installation complète
 sudo ./scripts/00-install-all.sh
 ```
-
-### Installation Manuelle
-
-```bash
-# 1. Mise à jour système
-sudo ./scripts/01-system-update.sh
-
-# 2. Sécurisation (Hardening)
-sudo ./scripts/02-hardening.sh
-
-# 3. Création utilisateurs
-sudo ./scripts/03-create-users.sh
-
-# 4. Firewall
-sudo ./scripts/04-setup-firewall.sh
-
-# 5. VPN WireGuard
-sudo ./scripts/05-setup-vpn.sh
-
-# 6. DNS Bind9
-sudo ./scripts/06-setup-dns.sh
-
-# 7. Apache
-sudo ./scripts/07-setup-apache.sh
-
-# 8. Fail2Ban
-sudo ./scripts/08-setup-fail2ban.sh
-```
-
----
 
 ## 👥 Utilisateurs Créés
 

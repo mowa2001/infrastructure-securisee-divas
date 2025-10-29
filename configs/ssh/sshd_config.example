@@ -1,0 +1,106 @@
+# Configuration SSH Sécurisée - Diva's Company
+# Fichier: /etc/ssh/sshd_config
+#
+# Pour appliquer:
+# 1. Copiez ce fichier: sudo cp sshd_config.example /etc/ssh/sshd_config
+# 2. Testez la config: sudo sshd -t
+# 3. Redémarrez SSH: sudo systemctl restart sshd
+
+# ===============================================
+# PARAMÈTRES DE BASE
+# ===============================================
+
+# Port SSH (par défaut 22, vous pouvez le changer pour plus de sécurité)
+Port 22
+
+# Protocole 2 uniquement (plus sécurisé)
+Protocol 2
+
+# Adresses d'écoute (0.0.0.0 = toutes les interfaces)
+ListenAddress 0.0.0.0
+
+# ===============================================
+# AUTHENTIFICATION
+# ===============================================
+
+# Désactiver la connexion root directe
+PermitRootLogin no
+
+# Autoriser l'authentification par clé publique
+PubkeyAuthentication yes
+
+# Autoriser l'authentification par mot de passe (temporaire)
+# Mettre à "no" une fois les clés SSH configurées
+PasswordAuthentication yes
+
+# Interdire les mots de passe vides
+PermitEmptyPasswords no
+
+# Désactiver l'authentification par challenge-response
+ChallengeResponseAuthentication no
+
+# Fichier des clés autorisées
+AuthorizedKeysFile .ssh/authorized_keys
+
+# ===============================================
+# SÉCURITÉ
+# ===============================================
+
+# Nombre maximum de tentatives d'authentification
+MaxAuthTries 3
+
+# Nombre maximum de sessions par connexion
+MaxSessions 10
+
+# Désactiver le forwarding X11 par défaut
+X11Forwarding no
+
+# Timeout pour les connexions inactives (5 minutes)
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Afficher une bannière avant la connexion
+Banner /etc/ssh/banner
+
+# Logging détaillé
+SyslogFacility AUTH
+LogLevel VERBOSE
+
+# ===============================================
+# RESTRICTIONS PAR GROUPE
+# ===============================================
+
+# Configuration pour les employés (accès limité)
+Match Group employDivas
+    # Chroot dans le home directory
+    ChrootDirectory /home/%u
+    # SFTP uniquement (pas de shell)
+    ForceCommand internal-sftp
+    # Désactiver le tunneling
+    AllowTcpForwarding no
+    X11Forwarding no
+    PermitTunnel no
+    AllowAgentForwarding no
+
+# Configuration pour les administrateurs (accès complet)
+Match Group adminDivas
+    # Tout autoriser pour les admins
+    AllowTcpForwarding yes
+    X11Forwarding yes
+    PermitTunnel yes
+
+# ===============================================
+# NOTES
+# ===============================================
+# 
+# Pour générer une clé SSH (sur votre PC):
+#   ssh-keygen -t ed25519 -C "votre@email.com"
+#
+# Pour copier la clé sur le serveur:
+#   ssh-copy-id utilisateur@serveur
+#
+# Pour tester la connexion avec clé:
+#   ssh -i ~/.ssh/id_ed25519 utilisateur@serveur
+#
+# Une fois les clés configurées, changez:
+#   PasswordAuthentication no

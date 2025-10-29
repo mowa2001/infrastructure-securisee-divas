@@ -1,0 +1,162 @@
+# Configuration Fail2Ban - Diva's Company
+# Fichier: /etc/fail2ban/jail.local
+#
+# Pour utiliser:
+# 1. Copiez: sudo cp jail.local.example /etc/fail2ban/jail.local
+# 2. Redémarrez: sudo systemctl restart fail2ban
+# 3. Vérifiez: sudo fail2ban-client status
+
+[DEFAULT]
+# ===============================================
+# PARAMÈTRES GÉNÉRAUX
+# ===============================================
+
+# IP à ignorer (ne jamais bannir)
+# Ajoutez vos IP de confiance ici
+ignoreip = 127.0.0.1/8 ::1 10.0.0.0/24
+
+# Durée du bannissement (en secondes)
+# 3600 = 1 heure
+# 7200 = 2 heures
+# 86400 = 24 heures
+# -1 = bannissement permanent
+bantime = 3600
+
+# Fenêtre de temps pour compter les tentatives (en secondes)
+# 600 = 10 minutes
+findtime = 600
+
+# Nombre maximum de tentatives avant bannissement
+maxretry = 3
+
+# Backend de logs
+# systemd = pour les systèmes avec systemd
+# auto = détection automatique
+backend = systemd
+
+# Action à effectuer lors d'un bannissement
+# iptables-multiport = bloquer avec iptables
+# firewallcmd-ipset = bloquer avec firewalld
+banaction = iptables-multiport
+
+# Email d'alerte (optionnel)
+# Décommentez et configurez pour recevoir des emails
+#destemail = admin@divas-company.local
+#sender = fail2ban@divas-company.local
+#action = %(action_mwl)s
+
+
+# ===============================================
+# PROTECTION SSH
+# ===============================================
+
+[sshd]
+# Activer la protection SSH
+enabled = true
+
+# Port SSH
+port = 22
+
+# Fichier de log à surveiller
+# Pour Fedora/RHEL: /var/log/secure
+# Pour Debian/Ubuntu: /var/log/auth.log
+logpath = /var/log/secure
+
+# Nombre maximum de tentatives
+maxretry = 3
+
+# Durée du ban (surcharge le DEFAULT si défini)
+bantime = 3600
+
+
+# ===============================================
+# PROTECTION SSH - ATTAQUES DDOS
+# ===============================================
+
+[sshd-ddos]
+# Protection contre les attaques DDoS SSH
+enabled = true
+port = 22
+logpath = /var/log/secure
+
+# Plus permissif que sshd normal
+maxretry = 10
+findtime = 60
+bantime = 7200
+
+
+# ===============================================
+# PROTECTION APACHE (Optionnel)
+# ===============================================
+
+# Décommentez pour activer la protection Apache
+
+#[apache-auth]
+## Protection contre les tentatives d'authentification Apache
+#enabled = true
+#port = http,https
+#logpath = /var/log/httpd/error_log
+#maxretry = 5
+
+#[apache-badbots]
+## Protection contre les mauvais bots
+#enabled = true
+#port = http,https
+#logpath = /var/log/httpd/access_log
+#maxretry = 2
+
+#[apache-noscript]
+## Protection contre les scripts malveillants
+#enabled = true
+#port = http,https
+#logpath = /var/log/httpd/error_log
+#maxretry = 6
+
+
+# ===============================================
+# NOTES
+# ===============================================
+#
+# Commandes utiles:
+#
+# Voir le statut général:
+#   sudo fail2ban-client status
+#
+# Voir le statut SSH:
+#   sudo fail2ban-client status sshd
+#
+# Voir les IP bannies:
+#   sudo fail2ban-client status sshd | grep "Banned IP"
+#
+# Débannir une IP:
+#   sudo fail2ban-client set sshd unbanip <IP>
+#
+# Bannir manuellement une IP:
+#   sudo fail2ban-client set sshd banip <IP>
+#
+# Recharger la configuration:
+#   sudo fail2ban-client reload
+#
+# Voir les logs:
+#   sudo tail -f /var/log/fail2ban.log
+#
+# Tester une règle:
+#   sudo fail2ban-regex /var/log/secure /etc/fail2ban/filter.d/sshd.conf
+
+
+# ===============================================
+# DÉPANNAGE
+# ===============================================
+#
+# Fail2Ban ne démarre pas:
+# - Vérifiez la syntaxe: sudo fail2ban-client -t
+# - Vérifiez les logs: sudo journalctl -u fail2ban -f
+#
+# Les bans ne fonctionnent pas:
+# - Vérifiez le backend: backend = systemd (ou auto)
+# - Vérifiez le logpath (différent selon la distribution)
+# - Vérifiez que le service surveille bien: sudo fail2ban-client status sshd
+#
+# IP bloquée par erreur:
+# - Débannissez: sudo fail2ban-client set sshd unbanip <IP>
+# - Ajoutez l'IP dans ignoreip

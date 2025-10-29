@@ -1,0 +1,146 @@
+; Zone DNS pour divas.local - Diva's Company
+; Fichier: /var/named/divas.local.zone (Fedora/RHEL)
+;      ou: /etc/bind/zones/divas.local.zone (Debian/Ubuntu)
+;
+; Pour utiliser:
+; 1. Remplacez <IP_SERVEUR> par l'IP de votre serveur
+; 2. Copiez dans le bon répertoire
+; 3. Permissions: sudo chmod 644 divas.local.zone
+; 4. Owner: sudo chown named:named divas.local.zone
+; 5. Redémarrez: sudo systemctl restart named
+
+; ===============================================
+; EN-TÊTE DE ZONE
+; ===============================================
+
+$TTL 86400  ; TTL par défaut: 24 heures (en secondes)
+
+; SOA (Start of Authority)
+@   IN  SOA  ns1.divas.local. admin.divas.local. (
+    2024051901  ; Serial (format: AAAAMMJJNN)
+                ; Incrémentez à chaque modification
+    3600        ; Refresh: 1 heure
+                ; Fréquence de vérification par les serveurs secondaires
+    1800        ; Retry: 30 minutes
+                ; Délai avant nouvelle tentative en cas d'échec
+    604800      ; Expire: 7 jours
+                ; Durée avant expiration si serveur primaire injoignable
+    86400 )     ; Negative TTL: 24 heures
+                ; Durée de cache des réponses négatives (NXDOMAIN)
+
+; ===============================================
+; SERVEURS DE NOMS
+; ===============================================
+
+; Serveur de noms primaire
+    IN  NS      ns1.divas.local.
+
+; Serveur de noms secondaire (optionnel)
+;   IN  NS      ns2.divas.local.
+
+; ===============================================
+; ENREGISTREMENTS A (IPv4)
+; ===============================================
+
+; Serveur de noms
+ns1         IN  A       <IP_SERVEUR>
+;ns2        IN  A       <IP_SERVEUR_SECONDAIRE>
+
+; Serveur principal
+divas       IN  A       <IP_SERVEUR>
+
+; Serveur web
+www         IN  A       <IP_SERVEUR>
+
+; Serveur VPN
+vpn         IN  A       <IP_SERVEUR>
+
+; Serveur mail (optionnel)
+;mail       IN  A       <IP_SERVEUR>
+
+; Autres services
+;ftp        IN  A       <IP_SERVEUR>
+;ssh        IN  A       <IP_SERVEUR>
+
+; ===============================================
+; ENREGISTREMENTS CNAME (Alias)
+; ===============================================
+
+; Alias pour le site web
+intranet    IN  CNAME   www
+web         IN  CNAME   www
+
+; Alias pour les services
+;webmail    IN  CNAME   mail
+;smtp       IN  CNAME   mail
+
+; ===============================================
+; ENREGISTREMENTS MX (Mail) - OPTIONNEL
+; ===============================================
+
+; Serveur mail (priorité: plus bas = prioritaire)
+;@          IN  MX  10  mail.divas.local.
+;@          IN  MX  20  mail2.divas.local.
+
+; ===============================================
+; ENREGISTREMENTS TXT - OPTIONNEL
+; ===============================================
+
+; SPF (Sender Policy Framework) pour email
+;@          IN  TXT     "v=spf1 mx a ip4:<IP_SERVEUR> -all"
+
+; DKIM pour email
+;default._domainkey  IN  TXT  "v=DKIM1; k=rsa; p=<VOTRE_CLE_PUBLIQUE>"
+
+; ===============================================
+; EXEMPLES D'ENREGISTREMENTS
+; ===============================================
+
+; Sous-domaines
+;admin      IN  A       <IP_SERVEUR>
+;api        IN  A       <IP_SERVEUR>
+;blog       IN  A       <IP_SERVEUR>
+
+; Wildcard (*.divas.local pointe vers le serveur)
+;*          IN  A       <IP_SERVEUR>
+
+; IPv6 (AAAA records)
+;divas      IN  AAAA    2001:db8::1
+;www        IN  AAAA    2001:db8::1
+
+; ===============================================
+; NOTES
+; ===============================================
+;
+; Types d'enregistrements:
+; - A     : IPv4
+; - AAAA  : IPv6
+; - CNAME : Alias (pointe vers un autre nom)
+; - MX    : Serveur mail
+; - TXT   : Texte libre (SPF, DKIM, etc.)
+; - NS    : Serveur de noms
+; - PTR   : Reverse DNS
+; - SRV   : Service
+;
+; Format:
+; nom  TTL  classe  type  valeur
+;
+; Exemple complet:
+; www  3600  IN     A     192.168.1.100
+;
+; Commandes de test:
+;
+; Test depuis le serveur:
+;   nslookup divas.local localhost
+;   dig @localhost divas.local
+;   host divas.local localhost
+;
+; Test depuis un client:
+;   nslookup divas.local <IP_SERVEUR>
+;   dig @<IP_SERVEUR> divas.local
+;
+; Vérifier la zone:
+;   named-checkzone divas.local /var/named/divas.local.zone
+;
+; Recharger la zone sans redémarrer:
+;   rndc reload divas.local

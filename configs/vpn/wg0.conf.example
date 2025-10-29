@@ -1,0 +1,88 @@
+# Configuration WireGuard Serveur - Diva's Company
+# Fichier: /etc/wireguard/wg0.conf
+#
+# Pour utiliser:
+# 1. Générez les clés: wg genkey | tee privatekey | wg pubkey > publickey
+# 2. Remplacez <VOTRE_CLE_PRIVEE> par le contenu de privatekey
+# 3. Copiez ce fichier: sudo cp wg0.conf.example /etc/wireguard/wg0.conf
+# 4. Permissions: sudo chmod 600 /etc/wireguard/wg0.conf
+# 5. Démarrez: sudo systemctl start wg-quick@wg0
+
+[Interface]
+# Adresse IP du serveur VPN
+Address = 10.0.0.1/24
+
+# Port d'écoute (UDP)
+ListenPort = 51820
+
+# Clé privée du serveur
+# Générez avec: wg genkey
+PrivateKey = <VOTRE_CLE_PRIVEE>
+
+# Ne pas sauvegarder automatiquement
+SaveConfig = false
+
+# Scripts exécutés au démarrage du VPN
+PostUp = sysctl -w net.ipv4.ip_forward=1
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT
+PostUp = iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# Scripts exécutés à l'arrêt du VPN
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+# ===============================================
+# CLIENTS (PEERS)
+# ===============================================
+# Ajoutez une section [Peer] pour chaque client
+
+# Exemple Client 1
+[Peer]
+# Nom du client (commentaire)
+# Client: laptop-alice
+
+# Clé publique du client (générée sur le client)
+PublicKey = <CLE_PUBLIQUE_CLIENT_1>
+
+# Adresse IP attribuée au client
+AllowedIPs = 10.0.0.2/32
+
+# Maintenir la connexion active (optionnel)
+# Utile si le client est derrière un NAT
+PersistentKeepalive = 25
+
+
+# Exemple Client 2
+#[Peer]
+# Client: phone-bob
+#PublicKey = <CLE_PUBLIQUE_CLIENT_2>
+#AllowedIPs = 10.0.0.3/32
+#PersistentKeepalive = 25
+
+
+# Exemple Client 3
+#[Peer]
+# Client: desktop-charlie
+#PublicKey = <CLE_PUBLIQUE_CLIENT_3>
+#AllowedIPs = 10.0.0.4/32
+#PersistentKeepalive = 25
+
+
+# ===============================================
+# NOTES
+# ===============================================
+#
+# Plage d'adresses IP disponibles:
+# - 10.0.0.1    : Serveur
+# - 10.0.0.2-254: Clients (253 clients max)
+#
+# Pour ajouter un nouveau client:
+# 1. Générer les clés sur le client
+# 2. Récupérer la clé publique du client
+# 3. Ajouter une section [Peer] ci-dessus
+# 4. Redémarrer: sudo systemctl restart wg-quick@wg0
+#
+# Commandes utiles:
+# - Voir le statut: sudo wg show wg0
+# - Voir les peers: sudo wg show wg0 peers
+# - Logs: sudo journalctl -u wg-quick@wg0 -f

@@ -1,0 +1,14 @@
+# Fichiers sensibles - NE JAMAIS COMMITER
+*.key
+*.pem
+*private*
+*.log
+authorized_keys
+
+# Configurations avec vraies données
+wg0.conf
+*password*
+
+# Système
+.DS_Store
+*.swp

@@ -1,0 +1,187 @@
+# Configuration Apache - Diva's Company
+# Fichier VirtualHost pour le site interne
+#
+# Pour Fedora/RHEL: /etc/httpd/conf.d/divas.conf
+# Pour Debian/Ubuntu: /etc/apache2/sites-available/divas.conf
+#
+# Pour activer (Debian/Ubuntu):
+#   sudo cp divas.conf.example /etc/apache2/sites-available/divas.conf
+#   sudo a2ensite divas.conf
+#   sudo systemctl restart apache2
+#
+# Pour activer (Fedora/RHEL):
+#   sudo cp divas.conf.example /etc/httpd/conf.d/divas.conf
+#   sudo systemctl restart httpd
+
+<VirtualHost *:80>
+    # Nom du serveur
+    ServerName divas.local
+    ServerAlias www.divas.local
+    
+    # Email de l'administrateur
+    ServerAdmin admin@divas.local
+    
+    # Répertoire racine du site
+    DocumentRoot /var/www/html
+    
+    # ===============================================
+    # CONFIGURATION DU RÉPERTOIRE
+    # ===============================================
+    
+    <Directory "/var/www/html">
+        # Options
+        # -Indexes : Ne pas afficher le contenu des dossiers
+        # +FollowSymLinks : Suivre les liens symboliques
+        Options -Indexes +FollowSymLinks
+        
+        # AllowOverride None : Désactiver les fichiers .htaccess (plus sécurisé)
+        AllowOverride None
+        
+        # ===============================================
+        # RESTRICTIONS D'ACCÈS
+        # ===============================================
+        
+        # Autoriser uniquement le réseau VPN
+        Require ip 10.0.0.0/24
+        
+        # Autoriser localhost
+        Require ip 127.0.0.1
+        Require ip ::1
+        
+        # Autoriser l'IP du serveur lui-même
+        # Remplacez par votre IP serveur
+        #Require ip 192.168.1.100
+        
+        # Pour autoriser tout le monde (déconseillé):
+        #Require all granted
+        
+        # Pour bloquer tout le monde sauf les IP ci-dessus:
+        <RequireAll>
+            Require all denied
+            Require ip 10.0.0.0/24
+            Require ip 127.0.0.1
+        </RequireAll>
+    </Directory>
+    
+    # ===============================================
+    # LOGS
+    # ===============================================
+    
+    # Log des erreurs
+    # Pour Fedora/RHEL:
+    ErrorLog /var/log/httpd/divas-error.log
+    # Pour Debian/Ubuntu:
+    #ErrorLog /var/log/apache2/divas-error.log
+    
+    # Log des accès (format combined = détaillé)
+    # Pour Fedora/RHEL:
+    CustomLog /var/log/httpd/divas-access.log combined
+    # Pour Debian/Ubuntu:
+    #CustomLog /var/log/apache2/divas-access.log combined
+    
+    # Niveau de log (debug, info, notice, warn, error, crit, alert, emerg)
+    LogLevel warn
+    
+    # ===============================================
+    # SÉCURITÉ - HEADERS HTTP
+    # ===============================================
+    
+    # Protection contre le clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Protection contre le sniffing de type MIME
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Protection XSS (Cross-Site Scripting)
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Référrer Policy (ne pas envoyer le referrer)
+    Header always set Referrer-Policy "no-referrer-when-downgrade"
+    
+    # Content Security Policy (optionnel, à adapter)
+    #Header always set Content-Security-Policy "default-src 'self'"
+    
+    # ===============================================
+    # PERFORMANCE (Optionnel)
+    # ===============================================
+    
+    # Compression gzip (décommentez pour activer)
+    #<IfModule mod_deflate.c>
+    #    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript
+    #</IfModule>
+    
+    # Cache (décommentez pour activer)
+    #<IfModule mod_expires.c>
+    #    ExpiresActive On
+    #    ExpiresByType image/jpg "access plus 1 year"
+    #    ExpiresByType image/jpeg "access plus 1 year"
+    #    ExpiresByType image/gif "access plus 1 year"
+    #    ExpiresByType image/png "access plus 1 year"
+    #    ExpiresByType text/css "access plus 1 month"
+    #    ExpiresByType application/javascript "access plus 1 month"
+    #</IfModule>
+    
+</VirtualHost>
+
+
+# ===============================================
+# CONFIGURATION HTTPS (SSL/TLS) - OPTIONNEL
+# ===============================================
+# Décommentez pour activer HTTPS avec Let's Encrypt
+
+#<VirtualHost *:443>
+#    ServerName divas.local
+#    ServerAlias www.divas.local
+#    DocumentRoot /var/www/html
+#    
+#    # Certificats SSL (Let's Encrypt)
+#    SSLEngine on
+#    SSLCertificateFile /etc/letsencrypt/live/divas.local/fullchain.pem
+#    SSLCertificateKeyFile /etc/letsencrypt/live/divas.local/privkey.pem
+#    
+#    # Configuration SSL moderne
+#    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+#    SSLCipherSuite HIGH:!aNULL:!MD5
+#    
+#    # Forcer HTTPS
+#    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+#    
+#    <Directory "/var/www/html">
+#        Options -Indexes +FollowSymLinks
+#        AllowOverride None
+#        Require ip 10.0.0.0/24
+#        Require ip 127.0.0.1
+#    </Directory>
+#</VirtualHost>
+
+
+# ===============================================
+# NOTES
+# ===============================================
+#
+# Commandes utiles:
+#
+# Tester la configuration:
+#   sudo apachectl configtest
+#   ou
+#   sudo apache2ctl configtest
+#
+# Recharger Apache:
+#   sudo systemctl reload httpd (Fedora)
+#   sudo systemctl reload apache2 (Debian)
+#
+# Redémarrer Apache:
+#   sudo systemctl restart httpd (Fedora)
+#   sudo systemctl restart apache2 (Debian)
+#
+# Voir les logs en temps réel:
+#   sudo tail -f /var/log/httpd/divas-access.log
+#   sudo tail -f /var/log/apache2/divas-access.log
+#
+# Activer les modules nécessaires (Debian):
+#   sudo a2enmod headers
+#   sudo a2enmod rewrite
+#   sudo a2enmod ssl
+#
+# Lister les sites actifs (Debian):
+#   sudo apache2ctl -S

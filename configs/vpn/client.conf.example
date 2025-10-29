@@ -1,0 +1,117 @@
+# Configuration WireGuard Client - Diva's Company
+# Fichier: client.conf
+#
+# Pour utiliser:
+# 1. Générez vos clés: wg genkey | tee privatekey | wg pubkey > publickey
+# 2. Remplacez <VOTRE_CLE_PRIVEE_CLIENT> par le contenu de privatekey
+# 3. Remplacez <IP_PUBLIQUE_SERVEUR> par l'IP publique du serveur
+# 4. Remplacez <CLE_PUBLIQUE_SERVEUR> par la clé publique du serveur
+# 5. Importez dans WireGuard (app mobile ou logiciel)
+
+[Interface]
+# Clé privée du client
+# Générez avec: wg genkey
+PrivateKey = <VOTRE_CLE_PRIVEE_CLIENT>
+
+# Adresse IP du client dans le VPN
+# Chaque client doit avoir une IP unique (10.0.0.2, 10.0.0.3, etc.)
+Address = 10.0.0.2/32
+
+# Serveurs DNS à utiliser via le VPN
+# 10.0.0.1 = DNS du serveur (Bind9)
+# 8.8.8.8 = Google DNS (secours)
+DNS = 10.0.0.1, 8.8.8.8
+
+
+[Peer]
+# Clé publique du serveur
+# Récupérez-la sur le serveur: cat /etc/wireguard/server_public.key
+PublicKey = <CLE_PUBLIQUE_SERVEUR>
+
+# Adresse et port du serveur
+# Format: IP_PUBLIQUE:PORT
+# Exemple: 203.0.113.42:51820
+Endpoint = <IP_PUBLIQUE_SERVEUR>:51820
+
+# Routes autorisées via le VPN
+# Option 1 (Recommandé): Seulement le réseau interne
+AllowedIPs = 10.0.0.0/24
+
+# Option 2: Tout le trafic via le VPN (décommentez pour activer)
+# AllowedIPs = 0.0.0.0/0, ::/0
+
+# Maintenir la connexion active
+# Nécessaire si vous êtes derrière un NAT/routeur
+PersistentKeepalive = 25
+
+
+# ===============================================
+# INSTALLATION CLIENT
+# ===============================================
+#
+# Windows:
+#   1. Téléchargez: https://www.wireguard.com/install/
+#   2. Installez WireGuard
+#   3. Cliquez "Ajouter un tunnel" → "Depuis fichier"
+#   4. Sélectionnez ce fichier .conf
+#   5. Cliquez "Activer"
+#
+# macOS:
+#   1. Installez: brew install wireguard-tools
+#   2. Ou téléchargez l'app: Mac App Store
+#   3. Importez ce fichier
+#
+# Linux:
+#   1. Installez: sudo apt install wireguard (Debian/Ubuntu)
+#                 sudo dnf install wireguard-tools (Fedora)
+#   2. Copiez ce fichier: sudo cp client.conf /etc/wireguard/
+#   3. Démarrez: sudo wg-quick up client
+#   4. Arrêtez: sudo wg-quick down client
+#
+# Android:
+#   1. Installez l'app WireGuard depuis le Play Store
+#   2. Scannez le QR code (généré avec: qrencode -t ansiutf8 < client.conf)
+#   3. Ou importez ce fichier
+#
+# iOS:
+#   1. Installez l'app WireGuard depuis l'App Store
+#   2. Scannez le QR code
+#   3. Ou importez ce fichier
+
+
+# ===============================================
+# TESTS
+# ===============================================
+#
+# Une fois connecté, testez:
+#
+# 1. Ping le serveur VPN:
+#    ping 10.0.0.1
+#
+# 2. Tester l'accès au serveur web:
+#    curl http://10.0.0.1
+#    ou ouvrez http://divas.local dans le navigateur
+#
+# 3. Vérifier le DNS:
+#    nslookup divas.local 10.0.0.1
+#
+# 4. Vérifier votre IP:
+#    curl ifconfig.me
+#    (doit montrer l'IP du serveur si AllowedIPs = 0.0.0.0/0)
+
+
+# ===============================================
+# DÉPANNAGE
+# ===============================================
+#
+# Connexion impossible:
+# - Vérifiez que le port 51820/UDP est ouvert sur le serveur
+# - Vérifiez l'IP publique du serveur (Endpoint)
+# - Vérifiez que les clés sont correctes
+#
+# Pas d'accès Internet:
+# - Utilisez AllowedIPs = 10.0.0.0/24 (pas 0.0.0.0/0)
+#
+# DNS ne fonctionne pas:
+# - Vérifiez que Bind9 tourne sur le serveur
+# - Testez: nslookup google.com 10.0.0.1
